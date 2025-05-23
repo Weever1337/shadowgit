@@ -1,0 +1,19 @@
+{
+  "welcome": "Добро пожаловать! Используйте /help для получения информации о командах.",
+  "startFirst": "Сначала запустите бот командой /start",
+  "addRepoFormat": "Укажите репозиторий в формате owner/repo",
+  "alreadySubscribed": "Вы уже подписаны на этот репозиторий",
+  "subscribed": "Подписка на {repo} оформлена.",
+  "subscribedNoToken": "Подписка на {repo} оформлена. Подключите GitHub-токен командой /connect для автоматической настройки вебхука",
+  "subscriptionFailed": "Подписка на {repo} не оформлена, ошибка настройки вебхука: {message}",
+  "removeRepoFormat": "Укажите репозиторий для удаления",
+  "unsubscribed": "Отписка от {repo} выполнена",
+  "notSubscribed": "Вы не подписаны на этот репозиторий",
+  "noSubscriptions": "У вас нет подписок",
+  "yourSubscriptions": "Ваши подписки:\n{message}",
+  "connectTokenFormat": "Укажите GitHub-токен, например: /connect YOUR_GITHUB_TOKEN",
+  "tokenConnected": "GitHub-токен успешно подключён",
+  "chooseLanguage": "Выберите язык:\n\n* - Я (разработчик) не поддерживаю российское вторжение в Украину.",
+  "languageChanged": "Язык успешно изменён!",
+  "help": "Доступные команды:\n/start - Регистрация\n/connect github_token - Подключение GitHub\n/add owner/repo - Подписка\n/remove owner/repo - Отписка\n/list - Показать подписки\n/language - Сменить язык\n/help - Показать это сообщение"
+}

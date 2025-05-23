@@ -1,0 +1,19 @@
+{
+  "welcome": "Welcome! Use /help for information about commands.",
+  "startFirst": "Please start the bot first with /start",
+  "addRepoFormat": "Please specify the repository in the format owner/repo",
+  "alreadySubscribed": "You are already subscribed to this repository",
+  "subscribed": "Subscribed to {repo}.",
+  "subscribedNoToken": "Subscribed to {repo}. Connect a GitHub token with /connect to set up the webhook automatically",
+  "subscriptionFailed": "Subscription to {repo} failed, webhook setup error: {message}",
+  "removeRepoFormat": "Please provide the repository to remove",
+  "unsubscribed": "Unsubscribed from {repo}",
+  "notSubscribed": "You are not subscribed to this repository",
+  "noSubscriptions": "You have no subscriptions",
+  "yourSubscriptions": "Your subscriptions:\n{message}",
+  "connectTokenFormat": "Please provide a GitHub token, e.g., /connect YOUR_GITHUB_TOKEN",
+  "tokenConnected": "GitHub token successfully connected",
+  "chooseLanguage": "Choose your language:\n\n* - I (the developer) do not support the russian invasion of Ukraine.",
+  "languageChanged": "Language changed successfully!",
+  "help": "Available commands:\n/start - Register\n/connect github_token - Connects your GitHub\n/add owner/repo - Subscribe\n/remove owner/repo - Unsubscribe\n/list - Show subscriptions\n/language - Change language\n/help - Show this message"
+}
