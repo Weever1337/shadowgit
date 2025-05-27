@@ -10,6 +10,9 @@ export const sendNotification = async (event, payload) => {
 
     for (const sub of subscriptions) {
         const message = formatMessage(event, payload);
-        await bot.telegram.sendMessage(sub.chatId, message, {parse_mode: 'HTML'});
+        await bot.telegram.sendMessage(sub.chatId, message, {
+            parse_mode: 'HTML',
+            disable_web_page_preview: true
+        });
     }
 };
