@@ -27,7 +27,7 @@ const getMigrationFiles = async () => {
 };
 
 const isMigrationApplied = async (name) => {
-    const migration = await Migration.findOne({ name });
+    const migration = await Migration.findOne({name});
     return !!migration;
 };
 
@@ -38,7 +38,7 @@ const applyMigration = async (file) => {
     if (!(await isMigrationApplied(name))) {
         console.log(`Applying migration: ${name}`);
         await migration.up();
-        await Migration.create({ name });
+        await Migration.create({name});
         console.log(`Migration ${name} applied successfully`);
     } else {
         console.log(`Migration ${name} already applied, skipping`);
@@ -52,7 +52,7 @@ const revertMigration = async (file) => {
     if (await isMigrationApplied(name)) {
         console.log(`Reverting migration: ${name}`);
         await migration.down();
-        await Migration.deleteOne({ name });
+        await Migration.deleteOne({name});
         console.log(`Migration ${name} reverted successfully`);
     } else {
         console.log(`Migration ${name} not applied, skipping revert`);

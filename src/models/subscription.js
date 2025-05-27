@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const subscriptionSchema = new mongoose.Schema({
-    chatId: { type: String, required: true },
+    chatId: {type: String, required: true},
     repository: {type: String, required: true},
 });
 

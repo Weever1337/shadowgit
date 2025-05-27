@@ -81,7 +81,7 @@ export const listCommand = async (ctx) => {
         return ctx.reply(translations.noSubscriptions);
     }
     const message = `<blockquote expandable>${subs.map(sub => `${sub.repository}`).join('\n')}</blockquote>`;
-    await ctx.reply(t(translations.yourSubscriptions, {message: message}), { parse_mode: 'HTML' });
+    await ctx.reply(t(translations.yourSubscriptions, {message: message}), {parse_mode: 'HTML'});
 };
 
 export const connectCommand = async (ctx) => {
