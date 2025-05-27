@@ -28,7 +28,6 @@ export const addCommand = async (ctx) => {
         return ctx.reply(translations.addRepoFormat);
     }
     const repo = parts[0];
-    const events = parts.slice(1).length > 0 ? parts.slice(1) : ['*'];
     const existingSub = await Subscription.findOne({chatId, repository: repo});
     if (existingSub) {
         return ctx.reply(translations.alreadySubscribed);
