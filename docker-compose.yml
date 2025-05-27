@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  shadowgit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3000}"
+    volumes:
+      - .:/shadowgit
+      - /shadowgit/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=${PORT:-3000}
+    command: npm start
