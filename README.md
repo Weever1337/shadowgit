@@ -11,6 +11,32 @@
 
 ## 🛠️ Installation
 
+<details>
+<summary><strong>🐳 Docker Installation</strong></summary>
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/Weever1337/shadowgit.git
+   cd shadowgit
+   ```
+
+2. **Create a `.env` file:**
+
+   Create a `.env` file in the root directory and add your Telegram bot token and other necessary configurations.
+
+3. **Build and run the Docker container:**
+
+   ```bash
+   docker-compose build
+   docker-compose up -d
+   ```
+
+</details>
+
+<details>
+<summary><strong>🛠️ Manual Installation</strong></summary>
+
 1. **Clone the repository:**
 
    ```bash
@@ -24,7 +50,7 @@
    npm install
    ```
 
-3. **Configure the bot:**
+3. **Create a `.env` file:**
 
    Create a `.env` file in the root directory and add your Telegram bot token and other necessary configurations.
 
@@ -33,6 +59,8 @@
    ```bash
    npm start
    ```
+
+</details>
 
 ## ⚙️ How It Works
 
