@@ -32,7 +32,7 @@ export const addCommand = async (ctx) => {
     if (existingSub) {
         return ctx.reply(translations.alreadySubscribed);
     }
-    const sub = new Subscription({chatId, repository: repo, events});
+    const sub = new Subscription({chatId, repository: repo});
     if (user.githubToken) {
         const result = await setupWebhook(user.githubToken, repo);
         if (result.result) {
