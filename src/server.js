@@ -5,6 +5,14 @@ import connectDB from './services/db.js';
 import {launchBot} from './bot/index.js';
 import dotenv from 'dotenv';
 
+process.on('uncaughtException', (error) => {
+    console.error('UNCAUGHT EXCEPTION:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('UNHANDLED REJECTION:', reason);
+});
+
 dotenv.config();
 
 const app = express();

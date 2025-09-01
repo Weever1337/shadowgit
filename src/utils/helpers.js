@@ -1,78 +1,135 @@
-export const formatMessage = (event, payload) => {
-    const escapeHTML = (text) =>
-        text
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&apos;');
+import he from 'he';
+import {loadTranslations, t} from './i18n.js';
 
+const escapeHTML = (text) => {
+    if (typeof text !== 'string') return '';
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+export const formatMessage = async (event, payload, lang = 'en') => {
+    const translations = await loadTranslations(lang);
     let returnMessage = '';
 
     switch (event) {
         case 'push': {
-            const commitsInfo = payload.commits.map((commit) => {
-                const addedLines = commit.additions || 0;
-                const removedLines = commit.deletions || 0;
+            if (payload.deleted) {
+                returnMessage = t(translations['event_push.branch_deleted'], {
+                    branch: escapeHTML(payload.ref.split('/').pop()),
+                    repoUrl: escapeHTML(payload.repository.html_url),
+                    repoName: escapeHTML(payload.repository.full_name),
+                    user: escapeHTML(payload.sender.login)
+                });
+                break;
+            }
 
+            if (!payload.commits || payload.commits.length === 0) return '';
+
+            const commitPromises = payload.commits.map((commit) => {
                 const authorLink = commit.author.username
                     ? `<a href="https://github.com/${escapeHTML(commit.author.username)}">${escapeHTML(commit.author.name || 'Unknown')} (@${escapeHTML(commit.author.username)})</a>`
                     : escapeHTML(commit.author.name || 'Unknown');
 
-                let commitMessage = `<b>🔨 Commit <a href="${escapeHTML(commit.url || '')}">#${escapeHTML(commit.id ? commit.id.slice(0, 7) : '')}</a></b>\n<i>👤 ${authorLink}</i>\n<i>💬 ${escapeHTML(commit.message)}</i>\n`;
+                const messageText = he.decode(commit.message || '');
 
-                if (addedLines || removedLines) {
-                    commitMessage += `<pre>📊 Diff: ➕ ${addedLines} ➖ ${removedLines}</pre>\n`;
-                }
-
-                return commitMessage;
+                return t(translations['event_push.commitLine'], {
+                    commitUrl: escapeHTML(commit.url || ''),
+                    commitId: escapeHTML(commit.id ? commit.id.slice(0, 7) : ''),
+                    author: authorLink,
+                    message: escapeHTML(messageText)
+                });
             });
 
-            returnMessage = `<b>📏 Push to <a href="${escapeHTML(payload.repository.html_url)}">${escapeHTML(payload.repository.full_name)}:${escapeHTML(payload.ref.split('/').pop())}</a></b>\n${payload.commits.length} commits\n<a href="${escapeHTML(payload.compare || '')}">🔗 Compare</a>\n\n<blockquote expandable>${commitsInfo.join('\n')}</blockquote>`;
+            const commitsInfo = await Promise.all(commitPromises);
+
+            const branch = escapeHTML(payload.ref.split('/').pop());
+            const title = t(translations['event_push.title'], {
+                repoUrl: escapeHTML(payload.repository.html_url),
+                branch: branch,
+                repoName: escapeHTML(payload.repository.full_name)
+            });
+            const commitsCount = t(translations['event_push.commits'], {count: payload.commits.length});
+            const compareLink = `<a href="${escapeHTML(payload.compare || '')}">${t(translations['event_push.compare'])}</a>`;
+
+            returnMessage = `${title}\n${commitsCount}\n${compareLink}\n\n<blockquote expandable>${commitsInfo.join('\n')}</blockquote>`;
             break;
         }
         case 'issues': {
-            const status = payload.issue.state ? `(${escapeHTML(payload.issue.state)})` : '';
-            const userLink = payload.issue.user.html_url
-                ? `<a href="${escapeHTML(payload.issue.user.html_url)}">@${escapeHTML(payload.issue.user.login)}</a>`
-                : `@${escapeHTML(payload.issue.user.login)}`;
-            returnMessage = `<b>📌 Issue ${escapeHTML(payload.action)} ${status}: <a href="${escapeHTML(payload.issue.html_url)}">${escapeHTML(payload.repository.full_name)}</a></b>\n<i>${escapeHTML(payload.issue.title)}</i>\n<a href="${escapeHTML(payload.issue.html_url)}">#${escapeHTML(payload.issue.number.toString())}</a> by ${userLink}`;
+            const action = t(translations[`event_issues.${payload.action}`] || payload.action);
+            const userLink = `<a href="${escapeHTML(payload.issue.user.html_url)}">@${escapeHTML(payload.issue.user.login)}</a>`;
+
+            returnMessage = t(translations['event_issues.title'], {
+                action: action,
+                state: escapeHTML(payload.issue.state),
+                issueUrl: escapeHTML(payload.issue.html_url),
+                repoName: escapeHTML(payload.repository.full_name),
+                issueTitle: escapeHTML(payload.issue.title),
+                issueNumber: escapeHTML(payload.issue.number.toString()),
+                user: userLink
+            });
             break;
         }
         case 'star': {
-            const action = payload.action === 'created' ? 'added' : 'removed';
-            returnMessage = `<b>⭐️ Star ${escapeHTML(action)}: <a href="${escapeHTML(payload.repository.html_url)}">${escapeHTML(payload.repository.full_name)}</a></b>\n✨ <i>${escapeHTML(payload.repository.stargazers_count.toString())}</i>\n👤 <a href="${escapeHTML(payload.sender.html_url)}">@${escapeHTML(payload.sender.login)}</a>`;
+            const key = `event_star.${payload.action}`;
+            returnMessage = t(translations[key], {
+                repoUrl: escapeHTML(payload.repository.html_url),
+                repoName: escapeHTML(payload.repository.full_name),
+                count: escapeHTML(payload.repository.stargazers_count.toString()),
+                userUrl: escapeHTML(payload.sender.html_url),
+                userLogin: escapeHTML(payload.sender.login)
+            });
             break;
         }
         case 'pull_request': {
-            let body = payload.pull_request.body || 'No description';
+            let body = payload.pull_request.body || t(translations['event_pull_request.no_description']);
             if (body.length > 200) {
                 body = body.slice(0, 200) + '...';
             }
-            const commitsCount = payload.pull_request.commits ? `(${escapeHTML(payload.pull_request.commits.toString())} commits)` : '';
-            const userLink = payload.pull_request.user.html_url
-                ? `<a href="${escapeHTML(payload.pull_request.user.html_url)}">@${escapeHTML(payload.pull_request.user.login)}</a>`
-                : `@${escapeHTML(payload.pull_request.user.login)}`;
-            returnMessage = `<b>📝 PR ${escapeHTML(payload.action)} ${commitsCount}: <a href="${escapeHTML(payload.repository.html_url)}">${escapeHTML(payload.repository.full_name)}</a></b>\n<i>${escapeHTML(payload.pull_request.title)}</i>\n<pre>${escapeHTML(body)}</pre>\n👤 ${userLink}\n<a href="${escapeHTML(payload.pull_request.html_url)}">#${escapeHTML(payload.pull_request.number.toString())}</a>`;
+            const userLink = `<a href="${escapeHTML(payload.pull_request.user.html_url)}">@${escapeHTML(payload.pull_request.user.login)}</a>`;
+            const action = t(translations[`event_pull_request.${payload.action}`] || payload.action);
+
+            returnMessage = t(translations['event_pull_request.title'], {
+                action: action,
+                commits: escapeHTML(payload.pull_request.commits?.toString() || '0'),
+                repoUrl: escapeHTML(payload.repository.html_url),
+                repoName: escapeHTML(payload.repository.full_name),
+                prTitle: escapeHTML(payload.pull_request.title),
+                body: escapeHTML(body),
+                user: userLink,
+                prUrl: escapeHTML(payload.pull_request.html_url),
+                prNumber: escapeHTML(payload.pull_request.number.toString())
+            });
             break;
         }
         case 'create': {
-            const senderLink = payload.sender.html_url
-                ? `<a href="${escapeHTML(payload.sender.html_url)}">@${escapeHTML(payload.sender.login)}</a>`
-                : `@${escapeHTML(payload.sender.login)}`;
-            returnMessage = `<b>🖇 New ${escapeHTML(payload.ref_type)} ${escapeHTML(payload.ref)} at <a href="${escapeHTML(payload.repository.html_url)}">${escapeHTML(payload.repository.full_name)}</a></b>\n👤 ${senderLink}`;
+            const senderLink = `<a href="${escapeHTML(payload.sender.html_url)}">@${escapeHTML(payload.sender.login)}</a>`;
+            returnMessage = t(translations['event_create.title'], {
+                refType: escapeHTML(payload.ref_type),
+                ref: escapeHTML(payload.ref),
+                repoUrl: escapeHTML(payload.repository.html_url),
+                repoName: escapeHTML(payload.repository.full_name),
+                user: senderLink
+            });
             break;
         }
         case 'fork': {
-            const forkeeOwnerLink = payload.forkee.owner.html_url
-                ? `<a href="${escapeHTML(payload.forkee.owner.html_url)}">@${escapeHTML(payload.forkee.owner.login)}</a>`
-                : `@${escapeHTML(payload.forkee.owner.login)}`;
-            returnMessage = `<b>🍴 Forked: <a href="${escapeHTML(payload.repository.html_url)}">${escapeHTML(payload.repository.full_name)}</a></b>\n🌐 <code>${escapeHTML(payload.repository.forks.toString())}</code>\n🔗 <a href="${escapeHTML(payload.forkee.html_url)}">${escapeHTML(payload.forkee.full_name)}</a>\n👤 ${forkeeOwnerLink}\nOriginal: <a href="${escapeHTML(payload.repository.html_url)}">${escapeHTML(payload.repository.full_name)}</a>`;
+            const forkeeOwnerLink = `<a href="${escapeHTML(payload.forkee.owner.html_url)}">@${escapeHTML(payload.forkee.owner.login)}</a>`;
+            returnMessage = t(translations['event_fork.title'], {
+                repoUrl: escapeHTML(payload.repository.html_url),
+                repoName: escapeHTML(payload.repository.full_name),
+                forks: escapeHTML(payload.repository.forks.toString()),
+                forkeeUrl: escapeHTML(payload.forkee.html_url),
+                forkeeName: escapeHTML(payload.forkee.full_name),
+                forkeeOwner: forkeeOwnerLink
+            });
             break;
         }
         default:
-            returnMessage = `<b>Unknown Event (${escapeHTML(event)}) in ${escapeHTML(payload.repository.full_name)}</b>`;
-            break;
+            return '';
     }
 
     return returnMessage;

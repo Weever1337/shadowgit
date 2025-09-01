@@ -10,6 +10,10 @@ export const webhookHandler = async (req, res) => {
         return res.status(401).send('Invalid signature');
     }
 
+    if (event === 'ping' || event === 'member') {
+        return res.status(200).send('Event ignored');
+    }
+
     await sendNotification(event, payload);
     res.status(200).send('Webhook received');
 };
